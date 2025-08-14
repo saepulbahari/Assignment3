@@ -3,33 +3,50 @@ const itemsPerPage = 1; // Jumlah item per halaman
 let currentPage = 1; // Halaman aktif
 
 // Fungsi untuk mengambil data dari Fake Store API
+// Fungsi untuk mengambil data dari Fake Store API
+// Fungsi untuk mengambil data dari Fake Store API
 async function fetchAPIData() {
   try {
     const response = await fetch("https://fakestoreapi.com/products");
     if (!response.ok) {
       throw new Error("Failed to fetch data from API");
     }
+
     const apiData = await response.json();
-    // Kombinasikan data API dengan produk lokal
-    apiData.forEach((item) => {
-      products.unshift({
-        name: item.title,
-        stock: "In stock",
-        price: item.price,
-        desc: item.description,
-        qty: Math.floor(Math.random() * 50) + 1,
-        color: "N/A",
-        material: "N/A",
-        brand: "API Brand",
-        image: item.image,
+
+    // Jika data berupa array
+    if (Array.isArray(apiData)) {
+      apiData.forEach((item) => {
+        products.unshift(mapProduct(item));
       });
-    });
+    } 
+    // Jika data berupa objek tunggal
+    else {
+      products.unshift(mapProduct(apiData));
+    }
+
     renderProducts();
   } catch (error) {
     console.error("Error fetching API data:", error);
     alert("Failed to fetch data from API. Please try again later.");
   }
 }
+
+// Fungsi untuk mapping data API ke format produk lokal
+function mapProduct(item) {
+  return {
+    name: item.title,
+    stock: "In stock",
+    price: item.price,
+    desc: item.description,
+    qty: Math.floor(Math.random() * 50) + 1,
+    color: "Biru",
+    material: "Kulit",
+    brand: "Adidas",
+    image: item.image,
+  };
+}
+
 
 // Fungsi untuk validasi input angka
 function validateNumberInput() {
