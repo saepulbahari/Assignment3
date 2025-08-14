@@ -84,8 +84,10 @@ document.getElementById("stockStatus").addEventListener("change", toggleSaveButt
 function submitForm(event) {
   event.preventDefault();
 
-  // Validasi angka untuk price dan quantity
-  if (!validateNumberInput()) {
+  // Validasi angka hanya untuk harga
+  const price = document.getElementById("price").value;
+  if (isNaN(price) || price <= 0) {
+    alert("Price harus berupa angka positif.");
     return;
   }
 
@@ -93,16 +95,17 @@ function submitForm(event) {
 
   const name = document.getElementById("productName").value.trim();
   const stock = document.getElementById("stockStatus").value.trim();
-  const price = document.getElementById("price").value.trim();
   const desc = document.getElementById("description").value.trim();
-  const qty = document.getElementById("quantity").value.trim();
+  const qty = stock === "Out of stock" 
+              ? 0 
+              : document.getElementById("quantity").value.trim();
   const color = document.getElementById("color").value.trim();
   const material = document.getElementById("material").value.trim();
   const brand = document.getElementById("brand").value.trim();
   const image = document.getElementById("imageUrl").value.trim() || defaultImage;
 
-  // Validasi input
-  if (!name || !stock || !price || !desc || !qty || !color || !material || !brand) {
+  // Validasi input wajib (kecuali quantity saat out of stock)
+  if (!name || !stock || !price || !desc || (stock !== "Out of stock" && !qty) || !color || !material || !brand) {
     alert("Data isian belum lengkap. Mohon isi semua kolom yang wajib diisi.");
     return;
   }
@@ -123,30 +126,38 @@ function submitForm(event) {
   // Reset form setelah submit
   document.getElementById("productForm").reset();
 
+  // Kembalikan input quantity ke kondisi awal
+  toggleSaveButton();
+
+  // Reset ke halaman pertama agar produk baru langsung terlihat
+  currentPage = 1;
+
   // Tampilkan produk
   renderProducts();
 }
+
 
 function renderProducts() {
   const productDisplayContainer = document.getElementById("productDisplayContainer");
   productDisplayContainer.innerHTML = ""; // Bersihkan kontainer
 
-  // Hitung indeks awal dan akhir untuk halaman saat ini
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-
-  // Ambil produk untuk halaman saat ini
   const currentProducts = products.slice(startIndex, endIndex);
 
-  // Tampilkan produk
   currentProducts.forEach((product, index) => {
+    // Tentukan kelas warna berdasarkan status stok
+    const stockClass = product.stock === "Out of stock" ? "text-danger" : "text-success";
+
     const productCard = document.createElement("div");
-    productCard.className = "col-12 mb-3"; // Satu baris penuh
+    productCard.className = "col-12 mb-3";
     productCard.innerHTML = `
       <div class="card p-3">
         <h6 class="fw-bold">${product.name}</h6>
         <img src="${product.image}" alt="Product Image" class="img-fluid mb-3 d-block mx-auto" style="max-width:250px;">
-        <p class="text-success fw-bold">${product.stock}</p>
+        
+        <p class="fw-bold ${stockClass}">${product.stock}</p> 
+        
         <p class="fw-bold">Rp ${parseFloat(product.price).toLocaleString()} /per pcs</p>
         <p>${product.desc}</p>
         <p><strong>Quantity:</strong> ${product.qty}</p>
@@ -162,7 +173,6 @@ function renderProducts() {
     productDisplayContainer.appendChild(productCard);
   });
 
-  // Render pagination
   renderPagination();
 }
 
